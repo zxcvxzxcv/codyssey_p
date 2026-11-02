@@ -44,19 +44,19 @@ git version 2.54.0 (Apple Git-157)
 
 ## 3. 수행 항목 체크리스트
 
-- [ ] 터미널 기본 조작 (위치/목록/이동/생성/복사/이동·이름변경/삭제/내용 확인)
-- [ ] 권한 변경 실습 (파일 1개 + 디렉토리 1개)
+- [x] 터미널 기본 조작 (위치/목록/이동/생성/복사/이동·이름변경/삭제/내용 확인)
+- [x] 권한 변경 실습 (파일 1개 + 디렉토리 1개)
 - [x] Docker 설치/점검 (`docker --version`, `docker info`)
 - [x] 이미지/컨테이너 기본 운영 (`docker build`, `ps`, `logs`, `stats`, `stop`, `rm`)
-- [ ] `docker images`, `docker ps -a` 출력 기록 (TODO)
-- [ ] `hello-world` 실행
+- [x] `docker images`, `docker ps -a` 출력 기록
+- [x] `hello-world` 실행
 - [x] `ubuntu` 컨테이너 실행 및 내부 명령 수행
-- [ ] 컨테이너 종료/유지 (`run -it` / `attach` / `exec`) 관찰
+- [x] 컨테이너 종료/유지 (`run -it` / `attach` / `exec`) 관찰
 - [x] Dockerfile 작성 및 커스텀 이미지 빌드/실행 (`my-web:1.0`)
 - [x] 포트 매핑 접속 (8080:80)
-- [ ] 포트 매핑 접속 2회째 (8081:80) — 선택이지만 예시 기준 권장
+- [x] 포트 매핑 접속 2회째 (8081:80)
 - [x] 바인드 마운트 변경 반영
-- [ ] Docker 볼륨 영속성 (named volume)
+- [x] Docker 볼륨 영속성 (named volume)
 - [x] Git 사용자 정보/기본 브랜치 설정
 - [x] GitHub 저장소 연동 및 push
 - [ ] VSCode GitHub 로그인/연동 증거 캡처
@@ -86,25 +86,44 @@ git version 2.54.0 (Apple Git-157)
 ### 5-1. 터미널 기본 조작
 
 ```bash
-$ pwd
-TODO
 $ mkdir -p ~/codyssey/practice && cd ~/codyssey/practice
+$ pwd
+/Users/<user>/codyssey/practice
 $ ls -la
-TODO
+total 0
+drwxr-xr-x@ 2 <user>  staff   64 Nov  2 21:24 .
+drwxr-xr-x  5 <user>  staff  160 Nov  2 21:24 ..
 $ touch a.txt
 $ echo "hello" > b.txt
 $ cat b.txt
 hello
 $ cp b.txt c.txt
-$ mv c.txt d.txt               # 이름 변경
-$ mkdir sub && mv d.txt sub/   # 이동
+$ mv c.txt d.txt                 # 이름 변경
+$ mkdir sub && mv d.txt sub/     # 이동
 $ ls -la . sub
-TODO
+.:
+total 8
+drwxr-xr-x@ 5 <user>  staff  160 Nov  2 21:25 .
+drwxr-xr-x  5 <user>  staff  160 Nov  2 21:24 ..
+-rw-r--r--@ 1 <user>  staff    0 Nov  2 21:25 a.txt
+-rw-r--r--@ 1 <user>  staff    6 Nov  2 21:25 b.txt
+drwxr-xr-x@ 3 <user>  staff   96 Nov  2 21:25 sub
+
+sub:
+total 8
+drwxr-xr-x@ 3 <user>  staff   96 Nov  2 21:25 .
+drwxr-xr-x@ 5 <user>  staff  160 Nov  2 21:25 ..
+-rw-r--r--@ 1 <user>  staff    6 Nov  2 21:25 d.txt
 $ rm a.txt
 $ rm -r sub
 $ ls -la
-TODO
+total 8
+drwxr-xr-x@ 3 <user>  staff   96 Nov  2 21:25 .
+drwxr-xr-x  5 <user>  staff  160 Nov  2 21:24 ..
+-rw-r--r--@ 1 <user>  staff    6 Nov  2 21:25 b.txt
 ```
+
+> `@`는 macOS의 확장 속성 표시이며 권한 해석에는 영향이 없다. 연습은 Git 저장소(`custom-web`) 밖의 `~/codyssey/practice`에서 수행했다.
 
 ### 5-2. 권한 실습
 
@@ -112,23 +131,31 @@ TODO
 ```bash
 $ touch perm.txt
 $ ls -l perm.txt          # 변경 전
-TODO
+-rw-r--r--@ 1 <user>  staff  0 Nov  2 21:26 perm.txt
 $ chmod 600 perm.txt
 $ ls -l perm.txt          # 변경 후
-TODO
+-rw-------@ 1 <user>  staff  0 Nov  2 21:26 perm.txt
 ```
 
 **디렉토리**
 ```bash
 $ mkdir permdir
 $ ls -ld permdir          # 변경 전
-TODO
-$ chmod 700 permdir
-$ ls -ld permdir          # 변경 후
-TODO
+drwxr-xr-x@ 2 <user>  staff  64 Nov  2 21:26 permdir
+$ chmod 644 permdir
+$ ls -ld permdir          # x 권한 제거 후
+drw-r--r--@ 2 <user>  staff  64 Nov  2 21:26 permdir
+$ cd permdir
+cd: permission denied: permdir
+$ chmod 755 permdir
+$ ls -ld permdir          # 복구 후
+drwxr-xr-x@ 2 <user>  staff  64 Nov  2 21:26 permdir
+$ cd permdir && cd ..
 ```
 
-**관찰**: TODO (예: 디렉토리에서 `x`를 빼면 `cd`가 막히는지 직접 실험한 결과)
+**관찰**
+- 파일: `644`(rw-r--r--)에서 `600`(rw-------)으로 바꾸자 그룹/기타 사용자의 읽기 권한이 사라졌다.
+- 디렉토리: `x`(실행) 권한을 빼자(`644`) `cd`가 `permission denied`로 막혔다. `755`로 되돌리니 다시 들어갈 수 있었다. 디렉토리에서 `x`는 "안으로 들어갈 수 있는 권한"이다.
 
 ### 5-3. Docker 설치 및 점검
 
@@ -172,7 +199,10 @@ WARNING: DOCKER_INSECURE_NO_IPTABLES_RAW is set
 
 ```bash
 $ docker images
-TODO (my-web:1.0, nginx:latest, ubuntu:latest 등)
+IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+hello-world:latest   c567b231f656       18.5kB         10.3kB    U
+my-web:1.0           de98bc82200c        258MB         62.2MB
+ubuntu:latest        6a06111c3b0a        179MB         44.9MB    U
 
 $ docker ps
 CONTAINER ID   IMAGE        STATUS         PORTS                  NAMES
@@ -205,7 +235,24 @@ TODO
 **hello-world**
 ```bash
 $ docker run hello-world
-TODO
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (arm64v8)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+...
+$ docker ps -a
+CONTAINER ID   IMAGE         COMMAND    CREATED                  STATUS                              PORTS     NAMES
+4edbda0abe3d   hello-world   "/hello"   Less than a second ago   Exited (0) Less than a second ago             unruffled_nash
+534f2eec44fa   ubuntu        "bash"     35 minutes ago           Exited (0) 34 minutes ago                     ubuntu-test
+9b5951d6992d   hello-world   "/hello"   35 minutes ago           Exited (0) 35 minutes ago                     goofy_varahamihira
 ```
 
 **ubuntu 컨테이너 진입**
@@ -230,37 +277,42 @@ VERSION_ID="26.04"
 root@534f2eec44fa:/# exit
 ```
 
-> **관찰**: 호스트는 macOS인데 컨테이너 내부는 Ubuntu 리눅스입니다. 컨테이너가 호스트와 분리된 격리 환경에서 동작함을 확인했습니다.
+> **관찰**: 호스트는 macOS인데 컨테이너 내부는 Ubuntu 리눅스다. 컨테이너가 호스트와 분리된 격리 환경에서 동작함을 확인했다.
 
-**종료/유지 비교 (attach / exec)**
+**종료/유지 비교 (run -it / exec / attach)**
 
 ```bash
 # 실험 A: run -it 후 exit
 $ docker run -it --name exp-a ubuntu bash
-root@...:/# exit
-$ docker ps -a
-TODO
+root@6b58a9ac6428:/# exit
 
 # 실험 B: exec 로 들어갔다 나오기
 $ docker run -d --name exp-b ubuntu sleep infinity
 $ docker exec -it exp-b bash
-root@...:/# exit
+root@70b96af700d2:/# exit
 $ docker ps
-TODO
+CONTAINER ID   IMAGE     COMMAND            CREATED          STATUS          PORTS     NAMES
+70b96af700d2   ubuntu    "sleep infinity"   18 seconds ago   Up 17 seconds             exp-b
 
 # 실험 C: attach 후 exit
 $ docker run -dit --name exp-c ubuntu bash
 $ docker attach exp-c
-root@...:/# exit
+root@7f00c37ad9eb:/# exit
 $ docker ps -a
-TODO
+CONTAINER ID   IMAGE         COMMAND            CREATED          STATUS                          PORTS     NAMES
+7f00c37ad9eb   ubuntu        "bash"             11 seconds ago   Exited (0) 5 seconds ago                  exp-c
+70b96af700d2   ubuntu        "sleep infinity"   46 seconds ago   Up 45 seconds                             exp-b
+6b58a9ac6428   ubuntu        "bash"             2 minutes ago    Exited (0) About a minute ago             exp-a
+...
 ```
 
-| 방식 | 붙는 대상 | exit 후 컨테이너 |
-|---|---|---|
-| `run -it` | 메인 프로세스 | TODO (실제 결과로 확인) |
-| `attach` | 메인 프로세스 | TODO |
-| `exec -it` | 새로 만든 별도 프로세스 | TODO |
+| 방식 | 붙는 대상 | exit 후 컨테이너 | 근거 |
+|---|---|---|---|
+| `run -it` | 메인 프로세스(bash) | **종료** | `exp-a`, `ubuntu-test` Exited (0) |
+| `exec -it` | 새로 만든 별도 프로세스 | **유지** | `exp-b` Up |
+| `attach` | 메인 프로세스(bash) | **종료** | `exp-c` Exited (0) |
+
+**정리**: 컨테이너는 메인 프로세스가 살아 있는 동안만 실행된다. `run -it`과 `attach`는 메인 프로세스에 직접 붙으므로 `exit`하면 컨테이너도 종료된다. `exec`는 이미 실행 중인 컨테이너 안에 별도 프로세스를 하나 더 띄우는 것이라, 나와도 메인 프로세스(`sleep infinity`)가 남아 컨테이너가 유지된다.
 
 ### 5-6. Dockerfile 기반 커스텀 이미지
 
@@ -303,25 +355,36 @@ $ docker build -t my-web:1.0 .
 ### 5-7. 포트 매핑
 
 ```bash
-$ docker run -d -p 8080:80 --name web-test my-web:1.0
-```
-
-**브라우저 접속 증거** (주소창 `localhost:8080` 포함)
-
-TODO: `docs/images/port-8080.png` 첨부
-
-```markdown
-![8080 접속](docs/images/port-8080.png)
-```
-
-화면에 "Hello from my custom image!" 가 표시되어 `호스트 8080 → 컨테이너 80` 매핑이 동작함을 확인했습니다.
-
-**2회째 접속 (선택/권장)**
-```bash
-$ docker run -d -p 8081:80 --name web-test-2 my-web:1.0
+$ docker run -d -p 8080:80 --name web-8080 my-web:1.0
+$ docker run -d -p 8081:80 --name web-8081 my-web:1.0
+$ docker ps
+CONTAINER ID   IMAGE        COMMAND                  CREATED         STATUS         PORTS                                     NAMES
+0e6004bfa3a8   my-web:1.0   "/docker-entrypoint.…"   3 minutes ago   Up 3 minutes   0.0.0.0:8081->80/tcp, [::]:8081->80/tcp   web-8081
+ea59825f4b8b   my-web:1.0   "/docker-entrypoint.…"   3 minutes ago   Up 3 minutes   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web-8080
+$ curl http://localhost:8080
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>My Custom Nginx</title>
+</head>
+<body>
+  <h1>Hello from my custom image!</h1>
+  <p>포트 매핑 테스트 페이지입니다.</p>
+</body>
+</html>
 $ curl http://localhost:8081
-TODO
+(위와 동일한 응답)
 ```
+
+같은 이미지(`my-web:1.0`)로 컨테이너 2개를 서로 다른 호스트 포트(8080, 8081)에 연결했고, 둘 다 컨테이너의 80번 포트로 전달되어 같은 페이지가 응답했다.
+
+**브라우저 접속 증거** (주소창 포함)
+
+![8080 접속](docs/images/port-8080.png)
+![8081 접속](docs/images/port-8081.png)
+
+> TODO: `port-8080.png`(주소창 포함) 추가. `port-8081.png`는 캡처 완료.
 
 ### 5-8. 바인드 마운트
 
@@ -341,26 +404,47 @@ TODO: 변경 전/후 브라우저 캡처 첨부
 
 ### 5-9. Docker 볼륨 영속성
 
-> 위 5-8은 호스트 폴더를 연결하는 **바인드 마운트**입니다. 아래는 Docker가 관리하는 **named volume** 검증입니다. (아직 수행 전)
+> 5-8은 호스트 폴더를 연결하는 **바인드 마운트**이고, 아래는 Docker가 관리하는 **named volume** 검증이다.
 
 ```bash
-$ docker rm -f web-vol             # 포트/이름 정리
 $ docker volume create mydata
+mydata
 $ docker volume ls
-TODO
+DRIVER    VOLUME NAME
+local     mydata
 $ docker run -d --name vol-test -v mydata:/data ubuntu sleep infinity
+5e6eecd46a7dcd008050b99c8cf6e8780d04fcf732e4eb7d1ced1e0b522974c8
 $ docker exec vol-test bash -c "echo hi > /data/hello.txt && cat /data/hello.txt"
 hi
 $ docker rm -f vol-test            # 컨테이너 삭제
-$ docker ps -a | grep vol-test     # 없음 확인
-TODO
+vol-test
+$ docker ps -a                     # vol-test 가 목록에 없음
+CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS                      PORTS                                     NAMES
+0e6004bfa3a8   my-web:1.0    "/docker-entrypoint.…"   4 minutes ago    Up 4 minutes                0.0.0.0:8081->80/tcp, [::]:8081->80/tcp   web-8081
+ea59825f4b8b   my-web:1.0    "/docker-entrypoint.…"   4 minutes ago    Up 4 minutes                0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web-8080
+4edbda0abe3d   hello-world   "/hello"                 7 minutes ago    Exited (0) 7 minutes ago                                              unruffled_nash
+534f2eec44fa   ubuntu        "bash"                   43 minutes ago   Exited (0) 42 minutes ago                                             ubuntu-test
+9b5951d6992d   hello-world   "/hello"                 43 minutes ago   Exited (0) 43 minutes ago                                             goofy_varahamihira
 
 $ docker run -d --name vol-test2 -v mydata:/data ubuntu sleep infinity
+260c31955d134878be7d403260f6b3edae0529d386cd3bb4ab84b053c9293393
 $ docker exec vol-test2 bash -c "cat /data/hello.txt"
-TODO (hi 가 나와야 함)
+hi
 $ docker volume inspect mydata
-TODO
+[
+    {
+        "CreatedAt": "2026-11-02T21:34:32+09:00",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/mydata/_data",
+        "Name": "mydata",
+        "Options": null,
+        "Scope": "local"
+    }
+]
 ```
+
+**결론**: 컨테이너(`vol-test`)를 삭제한 뒤 새 컨테이너(`vol-test2`)에 같은 볼륨(`mydata`)을 연결하자 이전에 쓴 `hi`가 그대로 남아 있었다. 데이터가 컨테이너 생명주기와 분리되어 유지됨을 확인했다.
 
 ### 5-10. Git 설정 및 GitHub 연동
 
