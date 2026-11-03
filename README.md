@@ -65,7 +65,7 @@ git version 2.54.0 (Apple Git-157)
 - [x] Docker 볼륨 영속성 (named volume)
 - [x] Git 사용자 정보/기본 브랜치 설정
 - [x] GitHub 저장소 연동 및 push
-- [ ] VSCode GitHub 로그인 연동 캡처 (5-10 참고)
+- [x] VSCode GitHub 로그인 연동 캡처 (5-10 참고)
 
 ---
 
@@ -522,8 +522,13 @@ df0f828 README 1
 ```
 
 **연동 증거**
-- GitHub 저장소 화면 (Dockerfile, site, docs, README 확인): TODO `docs/images/github-repo.png`
-- VSCode GitHub 로그인/저장소 연동 화면: TODO `docs/images/vscode-github.png` (토큰, 인증 코드 노출 금지)
+   - GitHub 저장소 화면 (Dockerfile, site, docs, README 확인)
+
+   ![GitHub 저장소](docs/images/github-repo.png)
+
+   - VSCode GitHub 로그인 화면 (계정 `zxcvxzxcv` 로그인됨, 토큰/인증 코드 없음)
+
+   ![VSCode GitHub 로그인](docs/images/vscode-github.png)
 
 ---
 
