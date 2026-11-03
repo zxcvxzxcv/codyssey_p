@@ -1,0 +1,7 @@
+services:
+  web:
+    build: .
+    image: my-web:compose
+    container_name: web-compose
+    ports:
+      - "8090:80"

@@ -14,6 +14,7 @@
 7. [트러블슈팅](#7-트러블슈팅)
 8. [보안 및 개인정보](#8-보안-및-개인정보)
 9. [재현 방법](#9-재현-방법)
+10. [보너스 과제: Docker Compose](#10-보너스-과제-docker-compose-기초)
 
 ---
 
@@ -66,6 +67,7 @@ git version 2.54.0 (Apple Git-157)
 - [x] Git 사용자 정보/기본 브랜치 설정
 - [x] GitHub 저장소 연동 및 push
 - [x] VSCode GitHub 로그인 연동 캡처 (5-10 참고)
+- [x] (보너스) Docker Compose 기초
 
 ---
 
@@ -83,6 +85,7 @@ git version 2.54.0 (Apple Git-157)
 | 바인드 마운트 | `-v "$(pwd)/site":/usr/share/nginx/html` | 호스트 수정이 즉시 반영 | [5-8](#5-8-바인드-마운트) |
 | 볼륨 영속성 | `docker volume create`, 컨테이너 삭제 후 재연결 | 데이터 유지 | [5-9](#5-9-docker-볼륨-영속성) |
 | Git/GitHub | `git config --list`, `git push` | 사용자 설정, 원격 업로드 | [5-10](#5-10-git-설정-및-github-연동) |
+| (보너스) Compose | `docker compose up -d --build`, `docker compose ps` | 단일 서비스 실행, 8090 접속 | [10](#10-보너스-과제-docker-compose-기초) |
 
 ---
 
@@ -338,6 +341,7 @@ CONTAINER ID   IMAGE         COMMAND            CREATED          STATUS         
 ```
 custom-web/
 ├── Dockerfile
+├── docker-compose.yml
 ├── .gitignore
 ├── README.md
 ├── docs/images/      # 접속/마운트 캡처
@@ -522,13 +526,14 @@ df0f828 README 1
 ```
 
 **연동 증거**
-   - GitHub 저장소 화면 (Dockerfile, site, docs, README 확인)
 
-   ![GitHub 저장소](docs/images/github-repo.png)
+- GitHub 저장소 화면 (Dockerfile, site, docs, README 확인)
 
-   - VSCode GitHub 로그인 화면 (계정 `zxcvxzxcv` 로그인됨, 토큰/인증 코드 없음)
+![GitHub 저장소](docs/images/github-repo.png)
 
-   ![VSCode GitHub 로그인](docs/images/vscode-github.png)
+- VSCode GitHub 로그인 화면 (계정 `zxcvxzxcv` 로그인됨, 토큰/인증 코드 없음)
+
+![VSCode GitHub 로그인](docs/images/vscode-github.png)
 
 ---
 
@@ -615,6 +620,17 @@ df0f828 README 1
   git push
   ```
 
+### 7-7. Compose 실행 시 컨테이너 이름 충돌
+- **문제**: `docker compose up -d --build` 실행 시 `Conflict. The container name "/web-compose" is already in use`
+- **원인 가설**: 같은 이름(`web-compose`)의 컨테이너가 이미 존재해서 Compose가 새로 만들 수 없음
+- **확인**: `docker ps -a --filter name=web-compose`로 기존 컨테이너 확인. 이때 `docker compose ps`는 비어 있었음
+- **해결**: 기존 컨테이너를 지운 뒤 다시 실행
+  ```bash
+  docker rm -f web-compose
+  docker compose up -d --build
+  docker compose ps
+  ```
+
 ---
 
 ## 8. 보안 및 개인정보
@@ -643,5 +659,67 @@ curl http://localhost:8080
 
 ---
 
-## 참고: 보너스 과제
-진행하지 않았다. (Docker Compose, 환경변수, SSH 키)
+## 10. 보너스 과제: Docker Compose 기초
+
+- [x] Docker Compose 기초 (단일 서비스 실행)
+- [ ] Compose 멀티 컨테이너 / 운영 명령 / 환경변수 / SSH 키 (진행하지 않음)
+
+### 목표
+`docker-compose.yml`의 기본 구조를 이해하고, 단일 서비스를 Compose로 실행한다.
+
+### docker-compose.yml
+```yaml
+services:
+  web:
+    build: .
+    image: my-web:compose
+    container_name: web-compose
+    ports:
+      - "8090:80"
+```
+
+| 항목 | 의미 | 같은 뜻의 `docker` 명령 |
+|---|---|---|
+| `build: .` | 현재 폴더의 Dockerfile로 이미지 빌드 | `docker build -t my-web:compose .` |
+| `image` | 만들어질 이미지 이름 | `-t my-web:compose` |
+| `container_name` | 컨테이너 이름 | `--name web-compose` |
+| `ports` | 호스트 8090을 컨테이너 80에 연결 | `-p 8090:80` |
+
+### 실행 및 확인
+```bash
+$ docker compose up -d --build
+[+] Building 1.7s (9/9) FINISHED
+ => [internal] load build definition from Dockerfile
+ => [1/2] FROM docker.io/library/nginx:latest@sha256:5ab5b0b0...
+ => CACHED [2/2] COPY site/ /usr/share/nginx/html/
+ => => naming to docker.io/library/my-web:compose
+```
+> 처음 실행에서 컨테이너 이름 충돌이 있었고, 해결 과정은 [7-7](#7-7-compose-실행-시-컨테이너-이름-충돌) 참고.
+
+```bash
+$ docker compose ps
+NAME          IMAGE            COMMAND                  SERVICE   CREATED              STATUS              PORTS
+web-compose   my-web:compose   "/docker-entrypoint.…"   web       About a minute ago   Up About a minute   0.0.0.0:8090->80/tcp, [::]:8090->80/tcp
+```
+
+```bash
+$ curl http://localhost:8090
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>My Custom Nginx</title>
+</head>
+<body>
+  <h1>Hello from my custom image!</h1>
+  <p>포트 매핑 테스트 페이지입니다.</p>
+</body>
+</html>
+```
+
+**브라우저 접속 증거** (주소창 포함)
+
+![Compose 8090 접속](docs/images/compose-8090.png)
+
+### 배운 점
+`docker run -d -p 8090:80 --name web-compose ...` 같은 긴 명령을 매번 기억해서 입력하는 대신, 실행 설정을 `docker-compose.yml` 파일에 적어 두었다. 설정이 파일로 남아 있어 같은 환경을 누구나 `docker compose up` 한 줄로 똑같이 재현할 수 있고, Git으로 버전 관리도 된다. 이것이 "실행 명령이 문서화된 실행 설정으로 바뀌는" 이유이다.
