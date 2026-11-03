@@ -662,7 +662,6 @@ curl http://localhost:8080
 ## 10. 보너스 과제: Docker Compose 기초
 
 - [x] Docker Compose 기초 (단일 서비스 실행)
-- [ ] Compose 멀티 컨테이너 / 운영 명령 / 환경변수 / SSH 키 (진행하지 않음)
 
 ### 목표
 `docker-compose.yml`의 기본 구조를 이해하고, 단일 서비스를 Compose로 실행한다.
